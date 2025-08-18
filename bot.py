@@ -407,11 +407,36 @@ async def help_tarot(ctx):
     
     await ctx.send(embed=embed)
 
-# Error handling
+# Define bot's valid commands for filtering
+VALID_TAROT_COMMANDS = {
+    'card', 'daily', 'threecards', 'love', 'celtic', 'help_tarot'
+}
+
+@bot.event
+async def on_message(message):
+    # Ignore messages from bots
+    if message.author.bot:
+        return
+    
+    # Only process messages that start with our prefix
+    if message.content.startswith('!'):
+        # Extract the command (everything after ! and before first space)
+        command = message.content[1:].split()[0].lower()
+        
+        # Only process if it's one of our valid commands
+        if command in VALID_TAROT_COMMANDS:
+            await bot.process_commands(message)
+        # If it's an unknown ! command, silently ignore it (don't respond)
+    else:
+        # Process non-command messages (in case bot needs to respond to mentions, etc.)
+        await bot.process_commands(message)
+
+# Error handling - only for our commands now
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send("🔮 Command not found. Use `!help_tarot` to see available commands.")
+        # This should rarely trigger now due to message filtering above
+        pass  # Silently ignore unknown commands
     else:
         print(f"Error: {error}")
         await ctx.send("🔮 Something went wrong. Please try again.")
